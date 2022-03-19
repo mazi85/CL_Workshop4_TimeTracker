@@ -18,7 +18,67 @@ function apiListTasks() {
     )
 }
 
+function apiListOperationsForTask(id) {
+    return fetch(
+        apihost + `/api/tasks/${id}/operations`,
+        {
+            headers: {Authorization: apikey}
+        }
+    ).then(
+        function (resp) {
+            if (!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    )
+}
+
+function renderOpertationsForTask(ul, status, operationId, operationDescription, timeSpent){
+
+    const li = document.createElement("li");
+    li.className = "list-group-item d-flex justify-content-between align-items-center";
+    ul.appendChild(li);
+
+        const divOperationDesc = document.createElement("div");
+        divOperationDesc.innerText = operationDescription;
+        li.appendChild(divOperationDesc);
+            const operationTime = document.createElement("span");
+            operationTime.className = "badge badge-success badge-pill ml-2"
+            operationTime.innerText = calculateTime(Number(timeSpent));
+            divOperationDesc.appendChild(operationTime);
+    if(status === 'open') {
+        const divOperationButtons = document.createElement("div");
+        li.appendChild(divOperationButtons);
+            const button15min = document.createElement("button");
+            button15min.className = "btn btn-outline-success btn-sm mr-2";
+            button15min.innerText = "+15m";
+            divOperationButtons.appendChild(button15min);
+
+            const button1h = document.createElement("button");
+            button1h.className = "btn btn-outline-success btn-sm mr-2";
+            button1h.innerText = "+1h";
+            divOperationButtons.appendChild(button1h);
+
+            const buttonDel = document.createElement("button");
+            buttonDel.className = "btn btn-outline-danger btn-sm";
+            buttonDel.innerText = "delete";
+            divOperationButtons.appendChild(buttonDel);
+    }
+}
+
+function calculateTime (minTime){
+   let hours = Math.floor(minTime/60);
+   let minutes = minTime%60;
+
+   return `${hours}h ${minutes}m `
+}
+
+
 function renderTask(taskId, title, description, status) {
+
+    console.log(apiListOperationsForTask(taskId));
+
     const section = document.createElement("section");
     section.className = 'card mt-5 shadow-sm';
 
@@ -57,6 +117,12 @@ function renderTask(taskId, title, description, status) {
     unsortedList.className = "list-group list-group-flush";
     section.appendChild(unsortedList);
 
+    apiListOperationsForTask(taskId).then(response => {
+        response.data.forEach(op => {
+            renderOpertationsForTask(unsortedList,status,op.id,op.description,op.timeSpent);
+        })
+    })
+
     const divForm = document.createElement("div");
     divForm.classList.add("card-body");
     section.appendChild(divForm);
@@ -90,10 +156,6 @@ function renderTask(taskId, title, description, status) {
     mainElement.appendChild(section);
 
 }
-
-
-console.log(apiListTasks());
-
 
 
 
