@@ -52,6 +52,43 @@ function apiCreateTask(title, description) {
     )
 }
 
+function apiDeleteTask(id) {
+    return fetch(
+        apihost + `/api/tasks/${id}`,
+        {
+            headers: {Authorization: apikey},
+            method: 'DELETE'
+        }
+    ).then(
+        function (resp) {
+            if (!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    )
+}
+
+function apiAddOperationForTask(id,description) {
+    return fetch(
+        apihost + `/api/tasks/${id}/operations`,
+        {
+            headers: {Authorization: apikey,'Content-Type': 'application/json'},
+            method: 'POST',
+            body: JSON.stringify({ description: description, timeSpent: '0' })
+        }
+    ).then(
+        function (resp) {
+            if (!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    )
+}
+
+
+
 
 function renderOpertationsForTask(ul, status, operationId, operationDescription, timeSpent){
 
@@ -129,6 +166,10 @@ function renderTask(taskId, title, description, status) {
             const buttonDelete = document.createElement("button");
             buttonDelete.className = "btn btn-outline-danger btn-sm ml-2";
             buttonDelete.innerText = "Delete";
+            buttonDelete.addEventListener("click", (e)=>{
+                apiDeleteTask(taskId);
+                section.remove();
+            })
             divButtons.appendChild(buttonDelete);
 
 
@@ -147,11 +188,20 @@ function renderTask(taskId, title, description, status) {
     section.appendChild(divForm);
 
         const addOperationForm = document.createElement("form");
+        addOperationForm.addEventListener("submit", (e)=>{
+            e.preventDefault();
+            let desc = inputOperation.value;
+            console.log(desc);
+            apiAddOperationForTask(taskId,desc)
+                .then(response => {
+                    renderOpertationsForTask(unsortedList,status,response.data.id,response.data.description,response.data.timeSpent);
+            });
+        });
         divForm.appendChild(addOperationForm);
 
             const divInputs = document.createElement("div");
             divInputs.className = "input-group";
-            divForm.appendChild(divInputs);
+            addOperationForm.appendChild(divInputs);
 
                 const inputOperation = document.createElement("input");
                 inputOperation.className = "form-control";
@@ -167,6 +217,7 @@ function renderTask(taskId, title, description, status) {
                     const buttonAdd = document.createElement("button");
                     buttonAdd.className = "btn btn-info";
                     buttonAdd.innerText = "Add";
+
                     divInputAppend.appendChild(buttonAdd);
 
 
