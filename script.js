@@ -34,6 +34,25 @@ function apiListOperationsForTask(id) {
     )
 }
 
+function apiCreateTask(title, description) {
+    return fetch(
+        apihost + '/api/tasks',
+        {
+            headers: { Authorization: apikey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: title, description: description, status: 'open' }),
+            method: 'POST'
+        }
+    ).then(
+        function(resp) {
+            if(!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    )
+}
+
+
 function renderOpertationsForTask(ul, status, operationId, operationDescription, timeSpent){
 
     const li = document.createElement("li");
@@ -157,9 +176,31 @@ function renderTask(taskId, title, description, status) {
 
 }
 
-
-
 document.addEventListener('DOMContentLoaded', function () {
+
+    printFullTasks();
+
+    //add Task Lisener
+    const addTaskForm = document.querySelector("form.js-task-adding-form");
+    addTaskForm.addEventListener("submit", (e)=>{
+        e.preventDefault();
+        let title = e.currentTarget.title.value;
+        console.log(e.currentTarget);
+        let description = e.currentTarget.description.value;
+        apiCreateTask(title, description)
+        .then(response => {
+            renderTask(response.data.id, response.data.title, response.data.description, response.data.status);
+        });
+    });
+
+
+
+
+
+
+});
+
+function printFullTasks(){
     apiListTasks().then(
         function (response) {
             // "response" zawiera obiekt z kluczami "error" i "data" (zob. wyżej)
@@ -170,9 +211,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     renderTask(task.id, task.title, task.description, task.status);
                 }
             );
-
-        }
-    );
-});
+        });
+}
 
 
