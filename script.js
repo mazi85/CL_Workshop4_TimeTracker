@@ -1,6 +1,7 @@
 const apikey = '97c2a0a2-a3ee-4f4f-87d6-ee0a5edc0a3b';
 const apihost = 'https://todo-api.coderslab.pl';
 
+//ZAPYTANIA DO API SERWERA
 
 function apiListTasks() {
     return fetch(
@@ -122,8 +123,28 @@ function apiDeleteOperation(operationId) {
     )
 }
 
+function apiCloseTask(id, title, description) {
+    return fetch(
+        apihost + `/api/tasks/${id}`,
+        {
+            headers: { Authorization: apikey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: title, description: description, status: 'close' }),
+            method: 'PUT'
+        }
+    ).then(
+        function(resp) {
+            if(!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    )
+}
 
 
+
+
+// METODY DO OBSŁUGI DANYCH Z API
 
 function renderOpertationsForTask(ul, status, operationId, operationDescription, timeSpent){
 
@@ -142,7 +163,7 @@ function renderOpertationsForTask(ul, status, operationId, operationDescription,
         const divOperationButtons = document.createElement("div");
         li.appendChild(divOperationButtons);
             const button15min = document.createElement("button");
-            button15min.className = "btn btn-outline-success btn-sm mr-2";
+            button15min.className = "btn btn-outline-success btn-sm mr-2 js-task-open-only";
             button15min.innerText = "+15m";
             button15min.addEventListener("click", (e)=>{
                timeSpent = timeSpent + 15;
@@ -155,7 +176,7 @@ function renderOpertationsForTask(ul, status, operationId, operationDescription,
             divOperationButtons.appendChild(button15min);
 
             const button1h = document.createElement("button");
-            button1h.className = "btn btn-outline-success btn-sm mr-2";
+            button1h.className = "btn btn-outline-success btn-sm mr-2 js-task-open-only";
             button1h.innerText = "+1h";
             button1h.addEventListener("click", (e)=>{
             timeSpent = timeSpent + 60;
@@ -167,7 +188,7 @@ function renderOpertationsForTask(ul, status, operationId, operationDescription,
             divOperationButtons.appendChild(button1h);
 
             const buttonDel = document.createElement("button");
-            buttonDel.className = "btn btn-outline-danger btn-sm";
+            buttonDel.className = "btn btn-outline-danger btn-sm js-task-open-only";
             buttonDel.innerText = "delete";
             buttonDel.addEventListener("click", (e)=>{
                 apiDeleteOperation(operationId);
@@ -221,8 +242,13 @@ function renderTask(taskId, title, description, status) {
 
             if(status === 'open') {
             const buttonFinish = document.createElement("button");
-            buttonFinish.className = "btn btn-dark btn-sm";
+            buttonFinish.className = "btn btn-dark btn-sm js-task-open-only";
             buttonFinish.innerText = "Finish";
+            buttonFinish.addEventListener("click", (e)=>{
+                apiCloseTask(taskId, title, description);
+                section.querySelectorAll('.js-task-open-only').forEach(e=>e.remove());
+
+            })
             divButtons.appendChild(buttonFinish);
             }
             const buttonDelete = document.createElement("button");
@@ -244,9 +270,9 @@ function renderTask(taskId, title, description, status) {
             renderOpertationsForTask(unsortedList,status,op.id,op.description,op.timeSpent);
         })
     })
-
+    if(status === 'open') {
     const divForm = document.createElement("div");
-    divForm.classList.add("card-body");
+    divForm.className = "card-body js-task-open-only";
     section.appendChild(divForm);
 
         const addOperationForm = document.createElement("form");
@@ -280,13 +306,15 @@ function renderTask(taskId, title, description, status) {
                     buttonAdd.innerText = "Add";
 
                     divInputAppend.appendChild(buttonAdd);
-
+    }
 
 
     const mainElement = document.querySelector('#app');
     mainElement.appendChild(section);
 
 }
+
+// LISENER WYWOŁUJĄCY METODY PO ZAŁADOWANIU CAŁEGO DOM
 
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -304,11 +332,6 @@ document.addEventListener('DOMContentLoaded', function () {
             renderTask(response.data.id, response.data.title, response.data.description, response.data.status);
         });
     });
-
-
-
-
-
 
 });
 
