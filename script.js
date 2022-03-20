@@ -87,6 +87,41 @@ function apiAddOperationForTask(id,description) {
     )
 }
 
+function apiAddTimeToOperation(idOperation,description,timeSpent) {
+    return fetch(
+        apihost + `/api/operations/${idOperation}`,
+        {
+            headers: {Authorization: apikey,'Content-Type': 'application/json'},
+            method: 'PUT',
+            body: JSON.stringify({ description: description, timeSpent : timeSpent})
+        }
+    ).then(
+        function (resp) {
+            if (!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    )
+}
+
+function apiDeleteOperation(operationId) {
+    return fetch(
+        apihost + `/api/operations/${operationId}`,
+        {
+            headers: {Authorization: apikey},
+            method: 'DELETE'
+        }
+    ).then(
+        function (resp) {
+            if (!resp.ok) {
+                alert('Wystąpił błąd! Otwórz devtools i zakładkę Sieć/Network, i poszukaj przyczyny');
+            }
+            return resp.json();
+        }
+    )
+}
+
 
 
 
@@ -109,16 +144,35 @@ function renderOpertationsForTask(ul, status, operationId, operationDescription,
             const button15min = document.createElement("button");
             button15min.className = "btn btn-outline-success btn-sm mr-2";
             button15min.innerText = "+15m";
+            button15min.addEventListener("click", (e)=>{
+               timeSpent = timeSpent + 15;
+                apiAddTimeToOperation(operationId,operationDescription,timeSpent)
+                    .then(response => {
+                        operationTime.innerText = calculateTime(Number(response.data.timeSpent));
+                    });
+
+            });
             divOperationButtons.appendChild(button15min);
 
             const button1h = document.createElement("button");
             button1h.className = "btn btn-outline-success btn-sm mr-2";
             button1h.innerText = "+1h";
+            button1h.addEventListener("click", (e)=>{
+            timeSpent = timeSpent + 60;
+            apiAddTimeToOperation(operationId,operationDescription,timeSpent)
+                .then(response => {
+                    operationTime.innerText = calculateTime(Number(response.data.timeSpent));
+                });
+            });
             divOperationButtons.appendChild(button1h);
 
             const buttonDel = document.createElement("button");
             buttonDel.className = "btn btn-outline-danger btn-sm";
             buttonDel.innerText = "delete";
+            buttonDel.addEventListener("click", (e)=>{
+                apiDeleteOperation(operationId);
+                li.remove();
+            })
             divOperationButtons.appendChild(buttonDel);
     }
 }
@@ -128,6 +182,14 @@ function calculateTime (minTime){
    let minutes = minTime%60;
 
    return `${hours}h ${minutes}m `
+}
+
+function upadateTime (minTime){
+    timeSpent = timeSpent + minTime;
+    apiAddTimeToOperation(operationId,operationDescription,timeSpent)
+        .then(response => {
+            operationTime.innerText = calculateTime(Number(response.data.timeSpent));
+        });
 }
 
 
@@ -191,7 +253,6 @@ function renderTask(taskId, title, description, status) {
         addOperationForm.addEventListener("submit", (e)=>{
             e.preventDefault();
             let desc = inputOperation.value;
-            console.log(desc);
             apiAddOperationForTask(taskId,desc)
                 .then(response => {
                     renderOpertationsForTask(unsortedList,status,response.data.id,response.data.description,response.data.timeSpent);
