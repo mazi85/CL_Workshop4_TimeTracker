@@ -191,8 +191,8 @@ function renderOpertationsForTask(ul, status, operationId, operationDescription,
             buttonDel.className = "btn btn-outline-danger btn-sm js-task-open-only";
             buttonDel.innerText = "delete";
             buttonDel.addEventListener("click", (e)=>{
-                apiDeleteOperation(operationId);
-                li.remove();
+                apiDeleteOperation(operationId).then(()=>li.remove());
+
             })
             divOperationButtons.appendChild(buttonDel);
     }
@@ -245,9 +245,9 @@ function renderTask(taskId, title, description, status) {
             buttonFinish.className = "btn btn-dark btn-sm js-task-open-only";
             buttonFinish.innerText = "Finish";
             buttonFinish.addEventListener("click", (e)=>{
-                apiCloseTask(taskId, title, description);
-                section.querySelectorAll('.js-task-open-only').forEach(e=>e.remove());
-
+                apiCloseTask(taskId, title, description).then(()=>{
+                    section.querySelectorAll('.js-task-open-only').forEach(e=>e.remove());
+                })
             })
             divButtons.appendChild(buttonFinish);
             }
@@ -255,8 +255,8 @@ function renderTask(taskId, title, description, status) {
             buttonDelete.className = "btn btn-outline-danger btn-sm ml-2";
             buttonDelete.innerText = "Delete";
             buttonDelete.addEventListener("click", (e)=>{
-                apiDeleteTask(taskId);
-                section.remove();
+                apiDeleteTask(taskId).then(()=>section.remove());
+
             })
             divButtons.appendChild(buttonDelete);
 
